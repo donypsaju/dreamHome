@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan & Expense Analytics</title>
+    <title>Construction Finance Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
@@ -11,168 +11,195 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .hidden-section { display: none !important; }
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
         /* Login Animation */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
         }
-        .shake-anim { animation: shake 0.5s; border-color: #ef4444; }
+        .shake-anim { animation: shake 0.4s ease-in-out; border-color: #ef4444 !important; }
+
+        /* Custom Scrollbar for Table */
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-gray-50 text-slate-800 h-screen overflow-hidden flex flex-col">
+<body class="text-slate-800 h-screen overflow-hidden flex flex-col">
 
-    <div id="login-gate" class="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center text-white transition-all duration-500">
-        <div class="w-full max-w-md p-8 bg-slate-800 rounded-2xl shadow-2xl border border-slate-700">
+    <div id="login-gate" class="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center text-white transition-opacity duration-500">
+        <div class="w-full max-w-sm p-8 bg-slate-800 rounded-2xl shadow-2xl border border-slate-700">
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600/20 text-blue-400 mb-4">
-                    <i class="fas fa-shield-alt text-3xl"></i>
+                    <i class="fas fa-vault text-3xl"></i>
                 </div>
                 <h1 class="text-2xl font-bold tracking-tight">Financial Vault</h1>
-                <p class="text-slate-400 text-sm mt-2">End-to-End Encrypted Workspace</p>
+                <p class="text-slate-400 text-xs mt-2 uppercase tracking-widest">AES-256 Encrypted</p>
             </div>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Decryption Key</label>
                     <div class="relative">
                         <input type="password" id="password-input" 
-                            class="w-full bg-slate-900 border border-slate-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                            placeholder="Enter your secret key">
-                        <button onclick="togglePassVisibility()" class="absolute right-3 top-3.5 text-slate-500 hover:text-white">
+                            class="w-full bg-slate-900 border border-slate-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-blue-500 transition-colors placeholder-slate-600"
+                            placeholder="Enter Decryption Key">
+                        <button onclick="togglePassVisibility()" class="absolute right-3 top-3.5 text-slate-500 hover:text-white transition">
                             <i class="far fa-eye"></i>
                         </button>
                     </div>
                 </div>
                 <button onclick="attemptLogin()" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-all shadow-lg shadow-blue-900/50">
-                    Decrypt & Enter
+                    Unlock Data
                 </button>
             </div>
             
-            <p id="login-status" class="text-center text-xs mt-6 text-slate-500 min-h-[20px]">
-                <i class="fas fa-lock text-xs mr-1"></i> Awaiting Input
-            </p>
+            <div id="login-status" class="text-center text-xs mt-6 text-slate-500 min-h-[20px] flex items-center justify-center gap-2">
+                <i class="fas fa-circle-notch fa-spin"></i> Connecting to GitHub...
+            </div>
         </div>
     </div>
 
-    <div id="dashboard-ui" class="hidden-section flex-1 flex flex-col h-screen overflow-hidden">
+    <div id="dashboard-ui" class="hidden-section flex-1 flex flex-col h-screen overflow-hidden opacity-0 transition-opacity duration-700">
         
-        <header class="bg-white border-b border-gray-200 z-10 shrink-0">
-            <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="bg-blue-600 text-white p-2 rounded-lg">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h1 class="font-bold text-xl text-slate-800 hidden sm:block">LoanTracker <span class="text-slate-400 font-normal text-sm">| Analytics</span></h1>
+        <header class="bg-white border-b border-gray-200 z-10 shrink-0 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-home text-blue-600 text-xl"></i>
+                    <span class="font-bold text-lg text-slate-800">MyHome<span class="text-slate-400 font-light">Tracker</span></span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button onclick="openModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-md">
-                        <i class="fas fa-plus mr-2"></i>New Entry
+                    <button onclick="openModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center gap-2">
+                        <i class="fas fa-plus"></i> <span class="hidden sm:inline">Transaction</span>
                     </button>
                     <button onclick="logout()" class="text-slate-400 hover:text-red-500 p-2 transition" title="Lock Vault">
-                        <i class="fas fa-sign-out-alt text-lg"></i>
+                        <i class="fas fa-lock"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8 custom-scroll">
             <div class="max-w-7xl mx-auto space-y-6">
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                    <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
-                        <div class="flex items-center gap-2 text-sm text-gray-500 w-full md:w-auto">
-                            <i class="fas fa-filter"></i>
-                            <span class="font-semibold">Filters:</span>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
-                            <input type="date" id="filter-start" onchange="applyFilters()" class="text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none">
-                            <input type="date" id="filter-end" onchange="applyFilters()" class="text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none">
-                            
-                            <select id="filter-type" onchange="applyFilters()" class="text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sticky top-0 z-20">
+                    <div class="flex flex-col xl:flex-row gap-4 justify-between items-center">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full xl:w-auto flex-1">
+                            <div class="relative">
+                                <span class="absolute left-2 top-2 text-gray-400 text-xs pointer-events-none">From</span>
+                                <input type="date" id="filter-start" onchange="applyFilters()" class="w-full text-sm border-gray-300 rounded-lg bg-gray-50 p-2 pt-5 border focus:ring-2 focus:ring-blue-100 outline-none h-12">
+                            </div>
+                            <div class="relative">
+                                <span class="absolute left-2 top-2 text-gray-400 text-xs pointer-events-none">To</span>
+                                <input type="date" id="filter-end" onchange="applyFilters()" class="w-full text-sm border-gray-300 rounded-lg bg-gray-50 p-2 pt-5 border focus:ring-2 focus:ring-blue-100 outline-none h-12">
+                            </div>
+                            <select id="filter-type" onchange="applyFilters()" class="w-full text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none h-12">
                                 <option value="all">All Types</option>
                                 <option value="loan">Loan Spend</option>
                                 <option value="personal">Personal Spend</option>
                             </select>
-
-                            <select id="filter-payee" onchange="applyFilters()" class="text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none">
+                            <select id="filter-payee" onchange="applyFilters()" class="w-full text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none h-12">
                                 <option value="all">All Payees</option>
                                 </select>
                         </div>
                         
-                        <button onclick="resetFilters()" class="text-xs text-blue-600 hover:underline whitespace-nowrap">Reset All</button>
+                        <div class="flex gap-3 w-full xl:w-auto items-center">
+                            <input type="text" id="table-search" onkeyup="applyFilters()" placeholder="Search description..." class="flex-1 xl:w-48 text-sm border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-100 outline-none">
+                            <button onclick="resetFilters()" class="text-sm text-blue-600 hover:text-blue-800 whitespace-nowrap px-2">Reset</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Filtered Total</p>
-                        <p class="text-2xl font-bold text-slate-800 mt-1" id="kpi-filtered-total">₹0</p>
-                        <p class="text-xs text-green-500 mt-1"><i class="fas fa-check-circle"></i> Showing selected view</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500 relative overflow-hidden">
+                        <i class="fas fa-map-marked-alt text-purple-100 absolute -right-4 -bottom-4 text-8xl"></i>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider relative z-10">Land / Plot Cost</p>
+                        <p id="val-plot" class="text-2xl font-bold text-slate-700 mt-1 relative z-10">Loading...</p>
+                        <p class="text-xs text-purple-500 mt-1 relative z-10">Fixed Investment</p>
                     </div>
 
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
-                        <div class="flex justify-between items-end mb-2">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Loan Limit Utilization</p>
-                            <span class="text-xs font-mono text-gray-600" id="limit-text">0 / 0</span>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500 md:col-span-2 relative overflow-hidden">
+                        <i class="fas fa-wallet text-emerald-50 absolute -right-4 -top-4 text-8xl"></i>
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 h-full">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Cash Position</p>
+                                <div class="flex items-center gap-4 mt-2">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Disbursed (In)</p>
+                                        <p id="val-disbursed" class="font-mono font-semibold text-slate-700">₹0</p>
+                                    </div>
+                                    <div class="text-gray-300">|</div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Spent (Materials)</p>
+                                        <p id="val-spent-materials" class="font-mono font-semibold text-red-500">₹0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 md:mt-0 text-right">
+                                <p class="text-xs text-emerald-600 font-bold uppercase mb-1">Balance Available</p>
+                                <p id="val-balance" class="text-3xl font-bold text-slate-800">₹0</p>
+                            </div>
                         </div>
-                        <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                            <div id="limit-bar" class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: 0%"></div>
-                        </div>
-                        <p class="text-xs text-gray-400 mt-2 text-right">Remaining: <span id="limit-remaining" class="font-bold text-slate-700">₹0</span></p>
                     </div>
+                </div>
 
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Transactions</p>
-                        <p class="text-2xl font-bold text-slate-800 mt-1" id="kpi-count">0</p>
-                        <p class="text-xs text-blue-500 mt-1">in current view</p>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-end mb-2">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Loan Utilization (Plot + Construction)</p>
+                        <span id="limit-text" class="text-sm font-bold text-blue-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-4 overflow-hidden mb-2">
+                        <div id="limit-bar" class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>Used: <strong id="val-total-used" class="text-slate-700">₹0</strong></span>
+                        <span>Limit: <strong id="val-limit" class="text-slate-700">₹0</strong></span>
+                        <span class="text-emerald-600">Remaining Limit: <strong id="val-limit-remaining">₹0</strong></span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
-                        <h3 class="font-bold text-gray-700 text-sm mb-4">Expense Trend</h3>
-                        <div class="h-64 relative w-full">
-                            <canvas id="timelineChart"></canvas>
+                    
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Selected View Stats</p>
+                        <div class="mb-4">
+                            <p class="text-3xl font-bold text-slate-800" id="kpi-filtered-total">₹0</p>
+                            <p class="text-xs text-blue-500">Total Amount</p>
+                        </div>
+                        <div>
+                            <p class="text-xl font-bold text-slate-800" id="kpi-count">0</p>
+                            <p class="text-xs text-gray-400">Transactions Found</p>
                         </div>
                     </div>
-                    
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                        <h3 class="font-bold text-gray-700 text-sm mb-4">By Category</h3>
-                        <div class="h-64 relative w-full flex justify-center">
-                            <canvas id="pieChart"></canvas>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
+                        <h3 class="font-bold text-gray-700 text-sm mb-4">Spending Trend (Filtered)</h3>
+                        <div class="h-48 relative w-full">
+                            <canvas id="timelineChart"></canvas>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                        <h3 class="font-bold text-gray-700 text-sm">Detailed Transactions</h3>
-                        <input type="text" id="table-search" onkeyup="applyFilters()" placeholder="Search description..." class="text-xs border rounded-md px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none">
+                    <div class="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                        <h3 class="font-bold text-gray-700 text-sm">Detailed Transaction History</h3>
                     </div>
-                    <div class="overflow-x-auto max-h-[500px]">
+                    <div class="overflow-x-auto max-h-[600px] custom-scroll">
                         <table class="min-w-full text-sm text-left text-gray-500">
-                            <thead class="text-xs text-gray-500 uppercase bg-gray-50 sticky top-0 z-10 shadow-sm">
+                            <thead class="text-xs text-gray-500 uppercase bg-white sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <th class="px-6 py-3 font-semibold">Date</th>
-                                    <th class="px-6 py-3 font-semibold">Type</th>
-                                    <th class="px-6 py-3 font-semibold">Payee</th>
-                                    <th class="px-6 py-3 font-semibold">Description</th>
-                                    <th class="px-6 py-3 font-semibold text-right">Amount (₹)</th>
+                                    <th class="px-6 py-3">Date</th>
+                                    <th class="px-6 py-3">Type</th>
+                                    <th class="px-6 py-3">Payee</th>
+                                    <th class="px-6 py-3">Description</th>
+                                    <th class="px-6 py-3 text-right">Amount</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-body" class="divide-y divide-gray-100">
+                            <tbody id="table-body" class="divide-y divide-gray-100 bg-white">
                                 </tbody>
                         </table>
                     </div>
@@ -184,100 +211,122 @@
 
     <div id="modal" class="hidden-section fixed inset-0 z-[60] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">
-            <div class="flex justify-between items-center p-4 border-b">
-                <h3 class="font-bold text-lg text-gray-800">Add Transaction</h3>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden animate-[fadeIn_0.3s_ease-out]">
+            <div class="flex justify-between items-center p-4 border-b bg-gray-50">
+                <h3 class="font-bold text-lg text-gray-800">Add New Transaction</h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white hover:bg-gray-200 border flex items-center justify-center transition text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="flex-1 bg-gray-50">
-                <iframe id="form-iframe" class="w-full h-full" frameborder="0"></iframe>
+            <div class="flex-1 bg-white relative">
+                <iframe id="form-iframe" class="w-full h-full" frameborder="0" src="about:blank"></iframe>
+                
+                <div class="absolute bottom-2 w-full text-center text-xs text-gray-400 pointer-events-none">
+                    If form doesn't load, <a id="fallback-link" href="#" target="_blank" class="text-blue-500 underline pointer-events-auto">open in new tab</a>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION
-        // REPLACE WITH YOUR REPO URL
-        const DATA_URL = 'https://YOUR_USERNAME.github.io/YOUR_REPO/data.json'; 
+        // ==========================================
+        // CONFIGURATION (EDIT THESE 2 LINES ONLY)
+        // ==========================================
+        const DATA_URL = 'https://donypsaju.github.io/dreamHome/data.json'; 
         const FORM_URL = "https://forms.gle/xJY3J4DyXVonZNrQ9";
+        // ==========================================
 
-        // STATE
+        // GLOBAL STATE
         let RAW_DATA = { meta: {}, expenses: [] };
         let FILTERED_DATA = [];
         let chartInstances = {};
+        let encryptedBlob = null;
 
         // 1. INITIALIZATION
         window.onload = async () => {
             const status = document.getElementById('login-status');
             
-            // Check LocalStorage
+            // Check Auto-Login
             const savedKey = localStorage.getItem('vaultKey');
             if(savedKey) {
                 document.getElementById('password-input').value = savedKey;
-                attemptLogin();
             }
 
-            // Pre-fetch Data (Encrypted)
+            // Fetch Data
             try {
-                status.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Downloading Vault...`;
+                // Add timestamp to bypass GitHub Pages caching
                 const res = await fetch(DATA_URL + "?t=" + Date.now());
-                if(!res.ok) throw new Error("Vault not found");
-                window.encryptedBlob = await res.text();
+                if(!res.ok) throw new Error("404 Not Found");
                 
-                // Sanitize
-                if(window.encryptedBlob.startsWith('"')) window.encryptedBlob = window.encryptedBlob.slice(1,-1);
+                encryptedBlob = await res.text();
+                // Sanitize string (remove surrounding quotes if present)
+                if(encryptedBlob.startsWith('"') && encryptedBlob.endsWith('"')) {
+                    encryptedBlob = encryptedBlob.slice(1, -1);
+                }
+
+                status.innerHTML = `<span class="text-emerald-400"><i class="fas fa-check"></i> Vault Downloaded. Ready.</span>`;
                 
-                status.innerHTML = `<i class="fas fa-check text-green-500"></i> Vault Downloaded. Ready to Decrypt.`;
+                // If we have a saved key, try logging in immediately
+                if(savedKey) attemptLogin();
+
             } catch (e) {
-                status.innerHTML = `<span class="text-red-500">Error: Could not reach GitHub. Check Network/URL.</span>`;
+                console.error(e);
+                status.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-triangle"></i> Error: Check DATA_URL or Network.</span>`;
             }
 
-            // Prep Modal
-            document.getElementById('form-iframe').src = FORM_URL + "?embedded=true";
+            // Setup Modal Links
+            document.getElementById('fallback-link').href = FORM_URL;
         };
 
-        // 2. AUTHENTICATION
+        // 2. AUTHENTICATION & DECRYPTION
         function attemptLogin() {
             const key = document.getElementById('password-input').value;
-            const status = document.getElementById('login-status');
             const btn = document.getElementById('login-btn');
+            const status = document.getElementById('login-status');
 
-            if(!window.encryptedBlob) return;
+            if(!encryptedBlob) {
+                status.innerText = "Wait for data download...";
+                return;
+            }
 
             btn.innerHTML = `<i class="fas fa-cog fa-spin"></i> Decrypting...`;
-            
+
+            // Allow UI to render the spinner before blocking thread
             setTimeout(() => {
                 try {
-                    const bytes = CryptoJS.AES.decrypt(window.encryptedBlob, key);
+                    const bytes = CryptoJS.AES.decrypt(encryptedBlob, key);
                     const str = bytes.toString(CryptoJS.enc.Utf8);
-                    
-                    if(!str) throw new Error("Decryption failed");
-                    
-                    // SUCCESS
+
+                    if(!str) throw new Error("Decryption Empty");
+
                     RAW_DATA = JSON.parse(str);
-                    localStorage.setItem('vaultKey', key); // Save successful key
-                    
-                    // Transition UI
+                    localStorage.setItem('vaultKey', key); // Save valid key
+
+                    // Transition
                     document.getElementById('login-gate').style.opacity = '0';
                     setTimeout(() => {
                         document.getElementById('login-gate').classList.add('hidden-section');
-                        document.getElementById('dashboard-ui').classList.remove('hidden-section');
+                        const dash = document.getElementById('dashboard-ui');
+                        dash.classList.remove('hidden-section');
+                        // Trigger reflow for fade-in
+                        void dash.offsetWidth; 
+                        dash.style.opacity = '1';
+                        
                         initDashboard();
                     }, 500);
 
                 } catch (e) {
-                    // FAIL
+                    // Fail State
+                    console.log("Decryption failed", e);
                     const input = document.getElementById('password-input');
                     input.classList.add('shake-anim');
-                    status.innerHTML = `<span class="text-red-400 font-bold">Access Denied: Invalid Key</span>`;
-                    btn.innerText = "Decrypt & Enter";
+                    status.innerHTML = `<span class="text-red-400 font-bold">Access Denied: Wrong Key</span>`;
+                    btn.innerText = "Unlock Data";
                     localStorage.removeItem('vaultKey');
                     
                     setTimeout(() => input.classList.remove('shake-anim'), 500);
                 }
-            }, 300); // Slight delay for UI feedback
+            }, 100);
         }
 
         function logout() {
@@ -287,10 +336,19 @@
 
         function togglePassVisibility() {
             const input = document.getElementById('password-input');
-            input.type = input.type === "password" ? "text" : "password";
+            const icon = document.querySelector('.fa-eye');
+            if(input.type === "password"){
+                input.type = "text";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
         }
 
-        // 3. DASHBOARD LOGIC
+        // 3. CORE LOGIC
         function initDashboard() {
             // Populate Payee Dropdown
             const payees = new Set();
@@ -300,6 +358,7 @@
             });
             
             const payeeSelect = document.getElementById('filter-payee');
+            payeeSelect.innerHTML = '<option value="all">All Payees</option>'; // Reset
             [...payees].sort().forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p;
@@ -307,9 +366,7 @@
                 payeeSelect.appendChild(opt);
             });
 
-            // Set Default Dates (First to Last)
-            // Optional: You can default to "Current Month" here if preferred
-            
+            // Trigger Calculations
             applyFilters();
         }
 
@@ -320,33 +377,28 @@
             const payee = document.getElementById('filter-payee').value;
             const search = document.getElementById('table-search').value.toLowerCase();
 
-            // 1. FILTER
+            // Filter Logic
             FILTERED_DATA = (RAW_DATA.expenses || []).filter(row => {
                 const rDate = new Date(row.Date);
                 const rType = (row.Type || "").toLowerCase();
-                const rPayee = (row.Payee || row.Payee_Name || "").toLowerCase(); // Check both column names
+                const rPayee = (row.Payee || row.Payee_Name || "").toLowerCase();
                 const rDesc = (row.Description || "").toLowerCase();
+                const rAmt = (row.Amount || "").toString();
 
-                // Date Check
                 if(start && rDate < new Date(start)) return false;
                 if(end && rDate > new Date(end)) return false;
 
-                // Type Check
-                if(type !== 'all') {
-                    if(type === 'loan' && !rType.includes('loan')) return false;
-                    if(type === 'personal' && rType.includes('loan')) return false;
-                }
+                if(type === 'loan' && !rType.includes('loan')) return false;
+                if(type === 'personal' && rType.includes('loan')) return false;
 
-                // Payee Check
                 if(payee !== 'all' && rPayee !== payee.toLowerCase()) return false;
 
-                // Search Check
-                if(search && !rDesc.includes(search) && !rPayee.includes(search)) return false;
+                if(search && !rDesc.includes(search) && !rPayee.includes(search) && !rAmt.includes(search)) return false;
 
                 return true;
             });
 
-            // Sort by Date Descending
+            // Sort Descending (Newest First) for Table
             FILTERED_DATA.sort((a,b) => new Date(b.Date) - new Date(a.Date));
 
             updateUI();
@@ -362,130 +414,144 @@
         }
 
         function updateUI() {
-            // 1. KPI CARDS
-            const total = FILTERED_DATA.reduce((sum, r) => sum + (parseFloat(r.Amount)||0), 0);
-            document.getElementById('kpi-filtered-total').innerText = "₹" + total.toLocaleString();
+            // --- A. GET STATIC META DATA ---
+            const meta = RAW_DATA.meta || {};
+            const sanctioned = parseFloat(meta.Sanctioned_Amount) || 0;
+            const disbursed = parseFloat(meta.Disbursed_Amount) || 0;
+            const plotCost = parseFloat(meta.Plot_Cost) || 0;
+
+            // --- B. CALCULATE TOTALS ---
+            
+            // 1. Filtered View Stats
+            const filteredTotal = FILTERED_DATA.reduce((sum, r) => sum + (parseFloat(r.Amount)||0), 0);
+            document.getElementById('kpi-filtered-total').innerText = "₹" + filteredTotal.toLocaleString();
             document.getElementById('kpi-count').innerText = FILTERED_DATA.length;
 
-            // Global Limit (Always based on RAW data Loan spend vs Meta Limit)
-            const limit = parseFloat(RAW_DATA.meta?.Sanctioned_Amount || 0);
-            const totalLoanUsed = (RAW_DATA.expenses||[]).reduce((sum, r) => {
+            // 2. Global Construction Spends (Material only, from Loan)
+            // We scan ALL expenses to get true balance, ignoring current filters
+            const allRows = RAW_DATA.expenses || [];
+            const totalMaterialLoanSpend = allRows.reduce((sum, r) => {
                 return (r.Type||"").toLowerCase().includes('loan') ? sum + (parseFloat(r.Amount)||0) : sum;
             }, 0);
+
+            // 3. Math for Cards
+            const cashInHand = disbursed - totalMaterialLoanSpend;
+            const totalDebt = totalMaterialLoanSpend + plotCost;
+            const remainingSanctioned = sanctioned - totalDebt;
+
+            // --- C. UPDATE DOM ---
             
-            const pct = limit > 0 ? Math.min(100, (totalLoanUsed/limit)*100) : 0;
-            document.getElementById('limit-bar').style.width = pct + "%";
-            document.getElementById('limit-bar').className = `h-full rounded-full transition-all duration-1000 ${pct > 90 ? 'bg-red-500' : 'bg-blue-600'}`;
-            document.getElementById('limit-text').innerText = `${(pct).toFixed(1)}% Used`;
-            document.getElementById('limit-remaining').innerText = "₹" + (limit - totalLoanUsed).toLocaleString();
+            // Plot Card
+            document.getElementById('val-plot').innerText = "₹" + plotCost.toLocaleString();
+
+            // Cash Position Card
+            document.getElementById('val-disbursed').innerText = "₹" + disbursed.toLocaleString();
+            document.getElementById('val-spent-materials').innerText = "- ₹" + totalMaterialLoanSpend.toLocaleString();
+            
+            const balEl = document.getElementById('val-balance');
+            balEl.innerText = "₹" + cashInHand.toLocaleString();
+            balEl.className = `text-3xl font-bold ${cashInHand < 50000 ? 'text-red-500' : 'text-slate-800'}`;
+
+            // Loan Limit Bar
+            const pct = sanctioned > 0 ? Math.min(100, (totalDebt / sanctioned) * 100) : 0;
+            const bar = document.getElementById('limit-bar');
+            bar.style.width = pct + "%";
+            bar.className = `h-full rounded-full transition-all duration-1000 ${pct > 90 ? 'bg-red-500' : 'bg-blue-600'}`;
+            document.getElementById('limit-text').innerText = pct.toFixed(1) + "% Used";
+            document.getElementById('val-total-used').innerText = "₹" + totalDebt.toLocaleString();
+            document.getElementById('val-limit').innerText = "₹" + sanctioned.toLocaleString();
+            document.getElementById('val-limit-remaining').innerText = "₹" + remainingSanctioned.toLocaleString();
 
 
-            // 2. TABLE
+            // --- D. RENDER TABLE ---
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
+            
             FILTERED_DATA.forEach(row => {
                 const isLoan = (row.Type||"").toLowerCase().includes('loan');
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50 transition border-b border-gray-100 last:border-0";
+                tr.className = "hover:bg-slate-50 transition border-b border-gray-50 last:border-0";
+                
                 tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-900">${row.Date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-slate-700 font-medium">${row.Date}</td>
                     <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${isLoan ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
+                        <span class="px-2.5 py-1 text-xs font-bold rounded-full border ${isLoan ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}">
                             ${row.Type}
                         </span>
                     </td>
-                    <td class="px-6 py-4 font-medium">${row.Payee || row.Payee_Name || '-'}</td>
-                    <td class="px-6 py-4 text-gray-500 max-w-xs truncate" title="${row.Description || ''}">${row.Description || '-'}</td>
+                    <td class="px-6 py-4 text-slate-600">${row.Payee || row.Payee_Name || '-'}</td>
+                    <td class="px-6 py-4 text-slate-500 max-w-xs truncate" title="${row.Description || ''}">${row.Description || '-'}</td>
                     <td class="px-6 py-4 text-right font-mono font-bold text-slate-700">₹${Number(row.Amount).toLocaleString()}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            // 3. CHARTS
+            // --- E. UPDATE CHARTS ---
             updateCharts();
         }
 
         function updateCharts() {
-            // Aggregate Data for charts based on FILTERED_DATA
+            // Prepare Data from Filtered Set
+            // Sort Oldest -> Newest for proper Line Chart flow
+            const sorted = [...FILTERED_DATA].sort((a,b) => new Date(a.Date) - new Date(b.Date));
+            
             const dateMap = {};
-            const typeMap = { 'Loan': 0, 'Personal': 0 };
-
-            // Sort Oldest -> Newest for Line Chart
-            const sortedForChart = [...FILTERED_DATA].sort((a,b) => new Date(a.Date) - new Date(b.Date));
-
-            sortedForChart.forEach(r => {
-                // Line Chart
+            sorted.forEach(r => {
                 const d = r.Date;
-                const amt = parseFloat(r.Amount)||0;
-                dateMap[d] = (dateMap[d]||0) + amt;
-
-                // Pie Chart
-                if((r.Type||"").toLowerCase().includes('loan')) typeMap['Loan'] += amt;
-                else typeMap['Personal'] += amt;
+                dateMap[d] = (dateMap[d] || 0) + (parseFloat(r.Amount)||0);
             });
 
             const labels = Object.keys(dateMap);
-            const dataPoints = Object.values(dateMap);
+            const data = Object.values(dateMap);
 
-            // Destroy old charts if exist
+            // Destroy old chart
             if(chartInstances.timeline) chartInstances.timeline.destroy();
-            if(chartInstances.pie) chartInstances.pie.destroy();
 
-            // RENDER LINE CHART
-            const ctxLine = document.getElementById('timelineChart').getContext('2d');
-            chartInstances.timeline = new Chart(ctxLine, {
+            // Render New
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            chartInstances.timeline = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Expense Flow',
-                        data: dataPoints,
+                        label: 'Daily Spending',
+                        data: data,
                         borderColor: '#2563eb',
                         backgroundColor: 'rgba(37, 99, 235, 0.1)',
                         borderWidth: 2,
                         fill: true,
-                        tension: 0.4,
-                        pointRadius: 3
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { 
+                    scales: {
                         x: { grid: { display: false } },
-                        y: { border: { display: false }, grid: { color: '#f3f4f6' } }
+                        y: { beginAtZero: true, border: { display: false } }
                     }
                 }
             });
-
-            // RENDER PIE CHART
-            const ctxPie = document.getElementById('pieChart').getContext('2d');
-            chartInstances.pie = new Chart(ctxPie, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Loan Spend', 'Personal Spend'],
-                    datasets: [{
-                        data: [typeMap['Loan'], typeMap['Personal']],
-                        backgroundColor: ['#ef4444', '#10b981'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
         }
 
-        // MODAL UTILS
+        // ==========================================
+        // MODAL LOGIC
+        // ==========================================
+        const modal = document.getElementById('modal');
+        const iframe = document.getElementById('form-iframe');
+
         function openModal() {
-            document.getElementById('modal').classList.remove('hidden-section');
+            modal.classList.remove('hidden-section');
+            // Lazy load iframe
+            if(iframe.src === 'about:blank') {
+                iframe.src = FORM_URL + "?embedded=true";
+            }
         }
         function closeModal() {
-            document.getElementById('modal').classList.add('hidden-section');
+            modal.classList.add('hidden-section');
         }
     </script>
 </body>
