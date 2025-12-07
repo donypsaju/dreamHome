@@ -2,8 +2,8 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vault Tracker Pro (Indian Edition)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vault Tracker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
@@ -15,11 +15,7 @@
             theme: {
                 extend: {
                     colors: {
-                        dark: {
-                            bg: '#0f172a',      
-                            card: '#1e293b',    
-                            border: '#334155',  
-                        }
+                        dark: { bg: '#0f172a', card: '#1e293b', border: '#334155' }
                     },
                     animation: {
                         'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
@@ -41,10 +37,9 @@
         .hidden-section { display: none !important; }
         
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; } /* Thinner for mobile */
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         /* Login Shake */
         @keyframes shake {
@@ -64,14 +59,13 @@
 </head>
 <body class="h-screen overflow-hidden flex flex-col selection:bg-blue-500 selection:text-white">
 
-    <div id="login-gate" class="fixed inset-0 z-50 bg-[#0f172a] flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
-        <div class="w-full max-w-sm p-8 bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 transform transition-all hover:scale-[1.01] duration-300">
+    <div id="login-gate" class="fixed inset-0 z-50 bg-[#0f172a] flex flex-col items-center justify-center transition-all duration-700 ease-in-out p-4">
+        <div class="w-full max-w-sm p-8 bg-slate-800 rounded-2xl shadow-2xl border border-slate-700">
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-500/10 text-blue-400 mb-4 ring-1 ring-blue-500/20 animate-pulse-slow">
-                    <i class="fas fa-rupee-sign text-4xl"></i>
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 text-blue-400 mb-4 ring-1 ring-blue-500/20 animate-pulse-slow">
+                    <i class="fas fa-rupee-sign text-3xl"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-slate-100 tracking-tight">Finance Vault</h1>
-                <p class="text-slate-500 text-xs mt-2 uppercase tracking-widest font-semibold">AES-256 Encrypted</p>
             </div>
             
             <div class="space-y-4">
@@ -79,12 +73,12 @@
                     <input type="password" id="password-input" 
                         class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3.5 px-4 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all placeholder-slate-600 shadow-inner"
                         placeholder="Enter Master Key">
-                    <button onclick="togglePassVisibility()" class="absolute right-3 top-4 text-slate-500 hover:text-white transition transform hover:scale-110 active:scale-95">
+                    <button onclick="togglePassVisibility()" class="absolute right-3 top-4 text-slate-500 hover:text-white transition p-1">
                         <i class="far fa-eye"></i>
                     </button>
                 </div>
-                <button onclick="attemptLogin()" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-900/40 hover:shadow-blue-600/40 transform active:scale-95">
-                    Unlock Dashboard
+                <button onclick="attemptLogin()" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-900/40 transform active:scale-95">
+                    Unlock
                 </button>
             </div>
             
@@ -98,138 +92,132 @@
         
         <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-20 shrink-0">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-                <div class="flex items-center gap-3 group cursor-default">
-                    <div class="bg-blue-600/20 p-2 rounded-lg text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                <div class="flex items-center gap-2 group cursor-default">
+                    <div class="bg-blue-600/20 p-2 rounded-lg text-blue-400">
                         <i class="fas fa-cube text-lg"></i>
                     </div>
-                    <span class="font-bold text-lg text-slate-100 tracking-tight">Loan<span class="text-slate-500 font-light">Tracker</span></span>
+                    <span class="font-bold text-lg text-slate-100 tracking-tight">Loan<span class="text-slate-500 font-light hidden sm:inline">Tracker</span></span>
                 </div>
+                
                 <div class="flex items-center gap-3">
-                    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-900/30 hover:shadow-blue-500/30 transform active:scale-95 flex items-center gap-2">
+                    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-900/30 active:scale-95 flex items-center gap-2">
                         <i class="fas fa-plus"></i> <span class="hidden sm:inline">Add Entry</span>
                     </button>
-                    <button onclick="logout()" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-700/50 transition-all active:rotate-90" title="Lock Vault">
+                    <button onclick="logout()" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-700/50 transition-all" title="Lock Vault">
                         <i class="fas fa-power-off text-lg"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto bg-slate-900 p-4 sm:p-6 lg:p-8 custom-scroll">
-            <div class="max-w-7xl mx-auto space-y-6">
+        <main class="flex-1 overflow-y-auto bg-slate-900 p-3 sm:p-6 lg:p-8 custom-scroll">
+            <div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
-                <div class="opacity-0 animate-fade-in-up stagger-1 bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-4 sticky top-0 z-10 backdrop-blur-sm bg-slate-800/95 transition-all">
-                    <div class="flex flex-col xl:flex-row gap-4 justify-between items-center">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full xl:w-auto flex-1">
-                            <input type="date" id="filter-start" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-11 transition-colors [color-scheme:dark] cursor-pointer hover:bg-slate-700/50">
+                <div class="opacity-0 animate-fade-in-up stagger-1 bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-4 sticky top-0 z-10 backdrop-blur-sm bg-slate-800/95">
+                    <div class="flex flex-col xl:flex-row gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 w-full xl:w-auto flex-1">
                             
-                            <input type="date" id="filter-end" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-11 transition-colors [color-scheme:dark] cursor-pointer hover:bg-slate-700/50">
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-xs text-slate-500 pointer-events-none">From</span>
+                                <input type="date" id="filter-start" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg pb-2 pt-6 px-3 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-14 [color-scheme:dark]">
+                            </div>
+
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-xs text-slate-500 pointer-events-none">To</span>
+                                <input type="date" id="filter-end" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg pb-2 pt-6 px-3 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-14 [color-scheme:dark]">
+                            </div>
                             
-                            <select id="filter-type" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-11 transition-colors cursor-pointer hover:bg-slate-700/50">
+                            <select id="filter-type" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg px-3 text-slate-200 focus:border-blue-500 outline-none h-14">
                                 <option value="all">All Types</option>
                                 <option value="loan">Loan Spend</option>
                                 <option value="personal">Personal Spend</option>
                             </select>
                             
-                            <select id="filter-payee" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-11 transition-colors cursor-pointer hover:bg-slate-700/50">
+                            <select id="filter-payee" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg px-3 text-slate-200 focus:border-blue-500 outline-none h-14">
                                 <option value="all">All Payees</option>
                             </select>
                         </div>
                         
-                        <div class="flex gap-3 w-full xl:w-auto items-center">
-                            <div class="relative flex-1 xl:w-64 group">
-                                <i class="fas fa-search absolute left-3 top-3.5 text-slate-500 text-xs transition-colors group-focus-within:text-blue-400"></i>
-                                <input type="text" id="table-search" onkeyup="applyFilters()" placeholder="Search transactions..." class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2.5 pl-9 pr-3 text-sm text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-11 transition-all">
+                        <div class="flex gap-2 w-full xl:w-auto items-center">
+                            <div class="relative flex-1 xl:w-64">
+                                <i class="fas fa-search absolute left-3 top-4 text-slate-500 text-xs"></i>
+                                <input type="text" id="table-search" onkeyup="applyFilters()" placeholder="Search..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 text-sm text-slate-200 focus:border-blue-500 outline-none h-14">
                             </div>
-                            <button onclick="resetFilters()" class="text-sm font-medium text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 px-3 py-2 rounded-lg transition-colors whitespace-nowrap active:scale-95">Reset</button>
+                            <button onclick="resetFilters()" class="text-sm font-medium text-blue-400 hover:bg-blue-400/10 px-4 h-14 rounded-lg transition-colors whitespace-nowrap">Reset</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 opacity-0 animate-fade-in-up stagger-2">
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 border-l-4 border-l-purple-500 relative overflow-hidden group hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300">
-                        <div class="absolute -right-6 -bottom-6 bg-purple-500/10 w-24 h-24 rounded-full blur-xl group-hover:bg-purple-500/20 transition-all duration-500"></div>
-                        <p class="text-xs font-bold text-purple-400 uppercase tracking-wider relative z-10">Land / Plot Cost</p>
-                        <p id="val-plot" class="text-3xl font-bold text-slate-100 mt-2 relative z-10 tracking-tight">...</p>
-                        <p class="text-xs text-slate-500 mt-1 relative z-10">Fixed Asset Investment</p>
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 border-l-4 border-l-purple-500 relative overflow-hidden">
+                        <p class="text-[10px] font-bold text-purple-400 uppercase tracking-wider relative z-10">Land / Plot Cost</p>
+                        <p id="val-plot" class="text-2xl font-bold text-slate-100 mt-1 relative z-10">...</p>
                     </div>
 
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 border-l-4 border-l-emerald-500 md:col-span-2 relative overflow-hidden group hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300">
-                        <div class="absolute -right-6 -top-6 bg-emerald-500/10 w-32 h-32 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all duration-500"></div>
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 h-full">
-                            <div class="space-y-4">
-                                <p class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Cash Flow Status</p>
-                                <div class="flex gap-8 text-sm">
-                                    <div class="group/item">
-                                        <p class="text-slate-500 text-xs mb-1">Disbursed (In)</p>
-                                        <p id="val-disbursed" class="font-mono text-slate-200 text-lg group-hover/item:text-white transition-colors">₹0</p>
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 border-l-4 border-l-emerald-500 md:col-span-2 relative overflow-hidden">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center relative z-10 h-full gap-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-2">Cash Flow</p>
+                                <div class="flex gap-4 text-sm">
+                                    <div>
+                                        <p class="text-slate-500 text-[10px]">In</p>
+                                        <p id="val-disbursed" class="font-mono text-slate-200">₹0</p>
                                     </div>
                                     <div class="w-px bg-slate-700"></div>
-                                    <div class="group/item">
-                                        <p class="text-slate-500 text-xs mb-1">Spent (Material)</p>
-                                        <p id="val-spent-materials" class="font-mono text-red-400 text-lg group-hover/item:text-red-300 transition-colors">₹0</p>
+                                    <div>
+                                        <p class="text-slate-500 text-[10px]">Out</p>
+                                        <p id="val-spent-materials" class="font-mono text-red-400">₹0</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-6 md:mt-0 text-right">
-                                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Cash In Hand</p>
-                                <p id="val-balance" class="text-4xl font-bold text-white tracking-tight drop-shadow-sm">₹0</p>
+                            <div class="text-left sm:text-right w-full sm:w-auto border-t sm:border-t-0 border-slate-700 pt-3 sm:pt-0">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Balance</p>
+                                <p id="val-balance" class="text-3xl font-bold text-white tracking-tight">₹0</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="opacity-0 animate-fade-in-up stagger-3 bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors">
+                <div class="opacity-0 animate-fade-in-up stagger-3 bg-slate-800 p-5 rounded-xl border border-slate-700">
                     <div class="flex justify-between items-end mb-3">
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Loan Utilization</p>
-                        <span id="limit-text" class="text-sm font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded">0% Used</span>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Loan Usage</p>
+                        <span id="limit-text" class="text-xs font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded">0%</span>
                     </div>
-                    <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden mb-3 shadow-inner">
-                        <div id="limit-bar" class="bg-blue-500 h-full rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] relative overflow-hidden transition-all duration-1000 ease-out w-0">
-                            <div class="absolute top-0 left-0 w-full h-full bg-white/20 -skew-x-12"></div>
-                        </div>
+                    <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden mb-3">
+                        <div id="limit-bar" class="bg-blue-500 h-full rounded-full transition-all duration-1000 w-0"></div>
                     </div>
-                    <div class="flex justify-between text-xs font-mono">
+                    <div class="flex justify-between text-[10px] font-mono">
                         <span class="text-slate-500">Used: <strong id="val-total-used" class="text-slate-300">₹0</strong></span>
-                        <span class="text-slate-500">Limit: <strong id="val-limit" class="text-slate-300">₹0</strong></span>
                         <span class="text-emerald-400">Left: <strong id="val-limit-remaining">₹0</strong></span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-0 animate-fade-in-up stagger-4">
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col justify-center hover:border-slate-600 transition-all">
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Filtered View</p>
-                        <div class="mb-6">
-                            <p class="text-3xl font-bold text-white" id="kpi-filtered-total">₹0</p>
-                            <p class="text-xs text-blue-400 font-medium">Total Selected</p>
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-center">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Filtered Total</p>
+                        <div class="mb-2">
+                            <p class="text-2xl font-bold text-white" id="kpi-filtered-total">₹0</p>
                         </div>
-                        <div>
-                            <p class="text-xl font-bold text-white" id="kpi-count">0</p>
-                            <p class="text-xs text-slate-500">Transactions Found</p>
-                        </div>
+                        <p class="text-xs text-slate-500"><span id="kpi-count" class="text-blue-400 font-bold">0</span> Txns</p>
                     </div>
 
                     <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 lg:col-span-2 relative">
-                        <h3 class="font-bold text-slate-300 text-sm mb-4">Spending Trend</h3>
-                        <div class="h-64 relative w-full">
+                        <div class="h-56 relative w-full">
                             <canvas id="timelineChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <div class="opacity-0 animate-fade-in-up stagger-5 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg">
-                    <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 backdrop-blur">
-                        <h3 class="font-bold text-slate-200 text-sm">Transaction History</h3>
-                    </div>
+                <div class="opacity-0 animate-fade-in-up stagger-5 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg mb-10">
                     <div class="overflow-x-auto max-h-[500px] custom-scroll">
                         <table class="min-w-full text-sm text-left text-slate-400">
                             <thead class="text-xs text-slate-500 uppercase bg-slate-900/50 sticky top-0 z-10 backdrop-blur-sm">
                                 <tr>
-                                    <th class="px-6 py-3 font-semibold tracking-wider">Date</th>
-                                    <th class="px-6 py-3 font-semibold tracking-wider">Type</th>
-                                    <th class="px-6 py-3 font-semibold tracking-wider">Payee</th>
-                                    <th class="px-6 py-3 font-semibold tracking-wider">Desc</th>
-                                    <th class="px-6 py-3 font-semibold tracking-wider text-right">Amount</th>
+                                    <th class="px-4 py-3 font-semibold">Date</th>
+                                    <th class="px-4 py-3 font-semibold">Type</th>
+                                    <th class="px-4 py-3 font-semibold">Payee</th>
+                                    <th class="px-4 py-3 font-semibold">Desc</th>
+                                    <th class="px-4 py-3 font-semibold text-right">Amt</th>
                                 </tr>
                             </thead>
                             <tbody id="table-body" class="divide-y divide-slate-700 bg-slate-800">
@@ -241,12 +229,12 @@
         </main>
     </div>
 
-    <div id="modal" class="hidden-section fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300 cursor-pointer" onclick="closeModal()"></div>
-        <div id="modal-content" class="relative bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-300 ease-out">
+    <div id="modal" class="hidden-section fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-sm transition-opacity duration-300" onclick="closeModal()"></div>
+        <div id="modal-content" class="relative bg-slate-800 sm:rounded-2xl rounded-t-2xl shadow-2xl border-t sm:border border-slate-700 w-full max-w-4xl h-[90vh] sm:h-[85vh] flex flex-col overflow-hidden transform translate-y-full sm:translate-y-10 opacity-0 transition-all duration-300 ease-out">
             <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
-                <h3 class="font-bold text-lg text-slate-200 pl-2">Add Transaction</h3>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-700 hover:bg-red-500/20 hover:text-red-400 text-slate-300 flex items-center justify-center transition-all active:scale-90">
+                <h3 class="font-bold text-lg text-slate-200">New Transaction</h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -258,10 +246,8 @@
 
     <script>
         // CONFIGURATION
-        // ============================================
         const DATA_URL = 'https://donypsaju.github.io/dreamHome/data.json'; 
-        const FORM_URL = "https://forms.gle/T14bA8RhkZFsTjxh9"; 
-        // ============================================
+        const FORM_URL = "https://forms.gle/T14bA8RhkZFsTjxh9";
 
         // STATE
         let RAW_DATA = { meta: {}, expenses: [] };
@@ -269,44 +255,30 @@
         let chartInstances = {};
         let encryptedBlob = null;
 
-        // --- ANIMATION UTILS ---
-        function formatIndianNumber(num) {
-            // Force en-IN locale for 1,50,000 format
-            return num.toLocaleString('en-IN');
-        }
+        // FORMATTER
+        function formatIndianNumber(num) { return num.toLocaleString('en-IN'); }
 
+        // ANIMATOR
         function animateValue(obj, start, end, duration, prefix = "₹") {
             let startTimestamp = null;
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const ease = 1 - Math.pow(1 - progress, 4);
-                
                 const current = Math.floor(progress * (end - start) + start);
-                // USE INDIAN NUMBER FORMAT HERE
                 obj.innerHTML = prefix + formatIndianNumber(current);
-                
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    obj.innerHTML = prefix + formatIndianNumber(end);
-                }
+                if (progress < 1) window.requestAnimationFrame(step);
+                else obj.innerHTML = prefix + formatIndianNumber(end);
             };
             window.requestAnimationFrame(step);
         }
 
         function animateTextUpdate(elementId, value, prefix="₹") {
             const el = document.getElementById(elementId);
-            // Parse existing value, removing commas and symbols
             let start = parseInt(el.innerText.replace(/[^0-9-]/g, '')) || 0;
-            if(isNaN(start)) start = 0;
-            
-            if(start !== value) {
-                animateValue(el, start, value, 800, prefix);
-            }
+            if(start !== value) animateValue(el, start, value, 800, prefix);
         }
 
-        // --- INIT ---
+        // INIT
         window.onload = async () => {
             const status = document.getElementById('login-status');
             const savedKey = localStorage.getItem('vaultKey');
@@ -317,24 +289,20 @@
                 if(!res.ok) throw new Error("404");
                 encryptedBlob = await res.text();
                 if(encryptedBlob.startsWith('"')) encryptedBlob = encryptedBlob.slice(1, -1);
-                
-                status.innerHTML = `<span class="text-emerald-400 font-semibold animate-pulse"><i class="fas fa-wifi"></i> Secure Connection Ready</span>`;
-                
+                status.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fas fa-wifi"></i> Ready</span>`;
                 if(savedKey) attemptLogin();
             } catch (e) {
-                status.innerHTML = `<span class="text-red-400">Connection Failed. Check URL.</span>`;
+                status.innerHTML = `<span class="text-red-400">Connection Failed</span>`;
             }
         };
 
-        // --- AUTH ---
         function attemptLogin() {
             const key = document.getElementById('password-input').value;
             const btn = document.getElementById('login-btn');
             
             if(!encryptedBlob) return;
-            btn.innerHTML = `<i class="fas fa-cog fa-spin"></i> Decrypting...`;
-            btn.classList.add('cursor-wait', 'opacity-80');
-
+            btn.innerHTML = `<i class="fas fa-cog fa-spin"></i>`;
+            
             setTimeout(() => {
                 try {
                     const bytes = CryptoJS.AES.decrypt(encryptedBlob, key);
@@ -346,8 +314,6 @@
 
                     const gate = document.getElementById('login-gate');
                     gate.style.opacity = '0';
-                    gate.style.transform = 'scale(1.05)';
-                    
                     setTimeout(() => {
                         gate.classList.add('hidden-section');
                         const dash = document.getElementById('dashboard-ui');
@@ -355,36 +321,22 @@
                         dash.classList.add('opacity-100');
                         initDashboard();
                     }, 500);
-
                 } catch (e) {
                     const input = document.getElementById('password-input');
                     input.classList.add('shake-anim');
-                    input.value = "";
-                    input.placeholder = "Incorrect Key";
-                    btn.innerHTML = "Unlock Dashboard";
-                    btn.classList.remove('cursor-wait', 'opacity-80');
+                    btn.innerHTML = "Unlock";
                     localStorage.removeItem('vaultKey');
                     setTimeout(() => input.classList.remove('shake-anim'), 500);
                 }
             }, 300);
         }
 
-        function logout() { 
-            const dash = document.getElementById('dashboard-ui');
-            dash.style.opacity = '0';
-            dash.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                localStorage.removeItem('vaultKey'); 
-                location.reload(); 
-            }, 300);
-        }
-
+        function logout() { localStorage.removeItem('vaultKey'); location.reload(); }
         function togglePassVisibility() {
             const input = document.getElementById('password-input');
             input.type = input.type === "password" ? "text" : "password";
         }
 
-        // --- DASHBOARD ---
         function initDashboard() {
             const payees = new Set();
             (RAW_DATA.expenses || []).forEach(r => {
@@ -443,9 +395,8 @@
             const plotCost = parseFloat(meta.Plot_Cost) || 0;
 
             const filteredTotal = FILTERED_DATA.reduce((sum, r) => sum + (parseFloat(r.Amount)||0), 0);
-            
             animateTextUpdate('kpi-filtered-total', filteredTotal);
-            animateTextUpdate('kpi-count', FILTERED_DATA.length, "");
+            document.getElementById('kpi-count').innerText = FILTERED_DATA.length;
 
             const allRows = RAW_DATA.expenses || [];
             const totalMaterialLoanSpend = allRows.reduce((sum, r) => {
@@ -459,7 +410,6 @@
             animateTextUpdate('val-plot', plotCost);
             animateTextUpdate('val-disbursed', disbursed);
             
-            // Negative value formatting for Spent
             const spentEl = document.getElementById('val-spent-materials');
             const currentSpent = parseInt(spentEl.innerText.replace(/[^0-9-]/g, '')) || 0;
             animateValue(spentEl, currentSpent, -totalMaterialLoanSpend, 800, "- ₹");
@@ -468,45 +418,36 @@
             animateValue(balEl, parseInt(balEl.innerText.replace(/[^0-9-]/g, '')) || 0, cashInHand, 800);
             
             setTimeout(() => {
-                balEl.className = `text-4xl font-bold tracking-tight drop-shadow-sm transition-colors duration-500 ${cashInHand < 50000 ? 'text-red-400' : 'text-emerald-400'}`;
+                balEl.className = `text-3xl font-bold tracking-tight drop-shadow-sm transition-colors duration-500 ${cashInHand < 50000 ? 'text-red-400' : 'text-emerald-400'}`;
             }, 0);
 
             const pct = sanctioned > 0 ? Math.min(100, (totalDebt / sanctioned) * 100) : 0;
-            const bar = document.getElementById('limit-bar');
-            bar.style.width = pct + "%";
-            bar.className = `h-full rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] relative overflow-hidden transition-all duration-1000 ease-out ${pct > 90 ? 'bg-red-500 shadow-red-500/50' : 'bg-blue-500'}`;
-            
-            document.getElementById('limit-text').innerText = pct.toFixed(1) + "% Used";
+            document.getElementById('limit-bar').style.width = pct + "%";
+            document.getElementById('limit-text').innerText = pct.toFixed(1) + "%";
             animateTextUpdate('val-total-used', totalDebt);
-            animateTextUpdate('val-limit', sanctioned);
             animateTextUpdate('val-limit-remaining', remainingSanctioned);
 
             const tbody = document.getElementById('table-body');
-            tbody.style.opacity = '0.5'; 
-            
-            setTimeout(() => {
-                tbody.innerHTML = '';
-                FILTERED_DATA.forEach((row, index) => {
-                    const isLoan = (row.Type||"").toLowerCase().includes('loan');
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-700/50 transition duration-150 border-b border-slate-700 last:border-0 group animate-fade-in-up";
-                    tr.style.animationDelay = (index * 20) + 'ms';
-                    
-                    tr.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-slate-300 font-medium">${row.Date}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2.5 py-1 text-xs font-bold rounded-full border ${isLoan ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}">
-                                ${row.Type}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-slate-400 group-hover:text-slate-200 transition-colors">${row.Payee || row.Payee_Name || '-'}</td>
-                        <td class="px-6 py-4 text-slate-500 max-w-xs truncate group-hover:text-slate-400 transition-colors" title="${row.Description || ''}">${row.Description || '-'}</td>
-                        <td class="px-6 py-4 text-right font-mono font-bold text-slate-300">₹${formatIndianNumber(Number(row.Amount))}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-                tbody.style.opacity = '1';
-            }, 150);
+            tbody.innerHTML = '';
+            FILTERED_DATA.forEach((row, index) => {
+                const isLoan = (row.Type||"").toLowerCase().includes('loan');
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-700/50 transition border-b border-slate-700 last:border-0 group animate-fade-in-up";
+                tr.style.animationDelay = (index * 20) + 'ms';
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-3 whitespace-nowrap text-slate-300 font-medium">${row.Date}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${isLoan ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}">
+                            ${isLoan ? 'LOAN' : 'SELF'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400 max-w-[80px] truncate">${row.Payee || row.Payee_Name || '-'}</td>
+                    <td class="px-4 py-3 text-slate-500 max-w-[80px] truncate">${row.Description || '-'}</td>
+                    <td class="px-4 py-3 text-right font-mono font-bold text-slate-300">₹${formatIndianNumber(Number(row.Amount))}</td>
+                `;
+                tbody.appendChild(tr);
+            });
 
             updateCharts();
         }
@@ -542,53 +483,20 @@
                             gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
                             return gradient;
                         },
-                        borderWidth: 3,
+                        borderWidth: 2,
                         fill: true,
                         tension: 0.4,
                         pointBackgroundColor: '#1e293b',
-                        pointBorderColor: '#3b82f6',
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: '#3b82f6',
-                        pointHoverBorderColor: '#fff'
+                        pointBorderColor: '#3b82f6'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: { duration: 1000, easing: 'easeOutQuart' },
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleColor: '#f1f5f9',
-                            bodyColor: '#cbd5e1',
-                            borderColor: '#334155',
-                            borderWidth: 1,
-                            padding: 10,
-                            displayColors: false,
-                            callbacks: {
-                                label: function(context) {
-                                    // Tooltip INDIAN FORMAT
-                                    return 'Expense: ₹' + formatIndianNumber(context.parsed.y);
-                                }
-                            }
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         x: { grid: { display: false } },
-                        y: { 
-                            beginAtZero: true, 
-                            border: { display: false }, 
-                            grid: { color: '#334155', tickLength: 0 },
-                            ticks: {
-                                callback: function(value) {
-                                    // Y-Axis INDIAN FORMAT (Compact)
-                                    // We can map large numbers to L/Cr if needed, or just commas
-                                    return '₹' + formatIndianNumber(value);
-                                }
-                            }
-                        }
+                        y: { beginAtZero: true, border: { display: false }, grid: { color: '#334155', tickLength: 0 }, ticks: { callback: function(value) { return '₹' + formatIndianNumber(value); } } }
                     }
                 }
             });
@@ -603,53 +511,14 @@
             modal.classList.remove('hidden-section');
             if(iframe.src === 'about:blank') iframe.src = FORM_URL;
             requestAnimationFrame(() => {
-                modalContent.classList.remove('scale-95', 'opacity-0');
-                modalContent.classList.add('scale-100', 'opacity-100');
+                modalContent.classList.remove('translate-y-full', 'sm:translate-y-10', 'opacity-0');
             });
         }
 
         function closeModal() { 
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
+            modalContent.classList.add('translate-y-full', 'sm:translate-y-10', 'opacity-0');
             setTimeout(() => { modal.classList.add('hidden-section'); }, 300);
         }
-    </script>
-    <script>
-        // 1. Disable Right Click
-        document.addEventListener('contextmenu', event => event.preventDefault());
-
-        // 2. Disable Keyboard Shortcuts (F12, Ctrl+Shift+I, Ctrl+U, etc.)
-        document.onkeydown = function(e) {
-            // F12
-            if(e.keyCode == 123) {
-                return false;
-            }
-            // Ctrl+I, Ctrl+J, Ctrl+U (View Source)
-            if(e.ctrlKey && (e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || e.keyCode == 85) {
-                return false;
-            }
-        };
-
-        // 3. Console Clearing (Annoyance)
-        // This repeatedly clears the console if someone manages to open it
-        setInterval(() => {
-            console.clear();
-            console.log("%cSecurity Alert", "color:red; font-size:30px; font-weight:bold;");
-            console.log("This area is restricted.");
-        }, 1000);
-
-        // 4. Detect DevTools Open (Debugger Trick)
-        // This freezes the browser if DevTools is open by hitting a breakpoint loop
-        (function() {
-            const element = new Image();
-            Object.defineProperty(element, 'id', {
-                get: function() {
-                    // Brutal infinite loop to freeze inspection
-                    debugger; 
-                }
-            });
-            console.log(element);
-        })();
     </script>
 </body>
 </html>
