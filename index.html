@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vault Tracker Pro</title>
+    <title>Vault Tracker Pro (Indian Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
@@ -60,9 +60,6 @@
         .stagger-3 { animation-delay: 300ms; }
         .stagger-4 { animation-delay: 400ms; }
         .stagger-5 { animation-delay: 500ms; }
-
-        /* Table Row Hover Transition */
-        tr { transition: background-color 0.2s ease; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col selection:bg-blue-500 selection:text-white">
@@ -71,9 +68,9 @@
         <div class="w-full max-w-sm p-8 bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 transform transition-all hover:scale-[1.01] duration-300">
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-500/10 text-blue-400 mb-4 ring-1 ring-blue-500/20 animate-pulse-slow">
-                    <i class="fas fa-fingerprint text-4xl"></i>
+                    <i class="fas fa-rupee-sign text-4xl"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-100 tracking-tight">Secure Vault</h1>
+                <h1 class="text-2xl font-bold text-slate-100 tracking-tight">Finance Vault</h1>
                 <p class="text-slate-500 text-xs mt-2 uppercase tracking-widest font-semibold">AES-256 Encrypted</p>
             </div>
             
@@ -121,7 +118,7 @@
         <main class="flex-1 overflow-y-auto bg-slate-900 p-4 sm:p-6 lg:p-8 custom-scroll">
             <div class="max-w-7xl mx-auto space-y-6">
 
-                <div class="opacity-0 animate-fade-in-up stagger-1 bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-4 sticky top-0 z-10 backdrop-blur-sm bg-slate-800/95 transition-all focus-within:border-blue-500/50 focus-within:ring-1 focus-within:ring-blue-500/20">
+                <div class="opacity-0 animate-fade-in-up stagger-1 bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-4 sticky top-0 z-10 backdrop-blur-sm bg-slate-800/95 transition-all">
                     <div class="flex flex-col xl:flex-row gap-4 justify-between items-center">
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full xl:w-auto flex-1">
                             <input type="date" id="filter-start" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-11 transition-colors [color-scheme:dark] cursor-pointer hover:bg-slate-700/50">
@@ -246,7 +243,6 @@
 
     <div id="modal" class="hidden-section fixed inset-0 z-[60] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300 cursor-pointer" onclick="closeModal()"></div>
-        
         <div id="modal-content" class="relative bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden transform scale-95 opacity-0 transition-all duration-300 ease-out">
             <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
                 <h3 class="font-bold text-lg text-slate-200 pl-2">Add Transaction</h3>
@@ -262,31 +258,38 @@
 
     <script>
         // CONFIGURATION
+        // ============================================
         const DATA_URL = 'https://donypsaju.github.io/dreamHome/data.json'; 
-        const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScBerkKLjK0Vbn_tN6mTIOmswBQ-rvmm1gzk3H-OYs9BsqunQ/viewform"; 
+        const FORM_URL = "https://forms.gle/T14bA8RhkZFsTjxh9"; 
+        // ============================================
 
         // STATE
         let RAW_DATA = { meta: {}, expenses: [] };
         let FILTERED_DATA = [];
         let chartInstances = {};
         let encryptedBlob = null;
-        let previousBalances = {}; // For number animation
 
         // --- ANIMATION UTILS ---
+        function formatIndianNumber(num) {
+            // Force en-IN locale for 1,50,000 format
+            return num.toLocaleString('en-IN');
+        }
+
         function animateValue(obj, start, end, duration, prefix = "₹") {
             let startTimestamp = null;
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                // Easing function (Ease Out Quart)
                 const ease = 1 - Math.pow(1 - progress, 4);
                 
                 const current = Math.floor(progress * (end - start) + start);
-                obj.innerHTML = prefix + current.toLocaleString();
+                // USE INDIAN NUMBER FORMAT HERE
+                obj.innerHTML = prefix + formatIndianNumber(current);
+                
                 if (progress < 1) {
                     window.requestAnimationFrame(step);
                 } else {
-                    obj.innerHTML = prefix + end.toLocaleString();
+                    obj.innerHTML = prefix + formatIndianNumber(end);
                 }
             };
             window.requestAnimationFrame(step);
@@ -294,11 +297,10 @@
 
         function animateTextUpdate(elementId, value, prefix="₹") {
             const el = document.getElementById(elementId);
-            // Simple parsing of current value "₹1,200" -> 1200
+            // Parse existing value, removing commas and symbols
             let start = parseInt(el.innerText.replace(/[^0-9-]/g, '')) || 0;
             if(isNaN(start)) start = 0;
             
-            // Only animate if difference is significant
             if(start !== value) {
                 animateValue(el, start, value, 800, prefix);
             }
@@ -330,8 +332,6 @@
             const btn = document.getElementById('login-btn');
             
             if(!encryptedBlob) return;
-            
-            // UI Feedback
             btn.innerHTML = `<i class="fas fa-cog fa-spin"></i> Decrypting...`;
             btn.classList.add('cursor-wait', 'opacity-80');
 
@@ -344,7 +344,6 @@
                     RAW_DATA = JSON.parse(str);
                     localStorage.setItem('vaultKey', key);
 
-                    // Login Exit Animation
                     const gate = document.getElementById('login-gate');
                     gate.style.opacity = '0';
                     gate.style.transform = 'scale(1.05)';
@@ -353,10 +352,7 @@
                         gate.classList.add('hidden-section');
                         const dash = document.getElementById('dashboard-ui');
                         dash.classList.remove('hidden-section');
-                        
-                        // Trigger CSS Animations
-                        dash.classList.add('opacity-100'); // Triggers the cascade
-                        
+                        dash.classList.add('opacity-100');
                         initDashboard();
                     }, 500);
 
@@ -370,7 +366,7 @@
                     localStorage.removeItem('vaultKey');
                     setTimeout(() => input.classList.remove('shake-anim'), 500);
                 }
-            }, 300); // Slight artificial delay for effect
+            }, 300);
         }
 
         function logout() { 
@@ -448,7 +444,6 @@
 
             const filteredTotal = FILTERED_DATA.reduce((sum, r) => sum + (parseFloat(r.Amount)||0), 0);
             
-            // ANIMATE NUMBERS instead of instant set
             animateTextUpdate('kpi-filtered-total', filteredTotal);
             animateTextUpdate('kpi-count', FILTERED_DATA.length, "");
 
@@ -463,7 +458,8 @@
 
             animateTextUpdate('val-plot', plotCost);
             animateTextUpdate('val-disbursed', disbursed);
-            // For spent, we want negative formatting
+            
+            // Negative value formatting for Spent
             const spentEl = document.getElementById('val-spent-materials');
             const currentSpent = parseInt(spentEl.innerText.replace(/[^0-9-]/g, '')) || 0;
             animateValue(spentEl, currentSpent, -totalMaterialLoanSpend, 800, "- ₹");
@@ -471,12 +467,10 @@
             const balEl = document.getElementById('val-balance');
             animateValue(balEl, parseInt(balEl.innerText.replace(/[^0-9-]/g, '')) || 0, cashInHand, 800);
             
-            // Color Logic for Balance
             setTimeout(() => {
                 balEl.className = `text-4xl font-bold tracking-tight drop-shadow-sm transition-colors duration-500 ${cashInHand < 50000 ? 'text-red-400' : 'text-emerald-400'}`;
             }, 0);
 
-            // Progress Bar Animation
             const pct = sanctioned > 0 ? Math.min(100, (totalDebt / sanctioned) * 100) : 0;
             const bar = document.getElementById('limit-bar');
             bar.style.width = pct + "%";
@@ -487,18 +481,16 @@
             animateTextUpdate('val-limit', sanctioned);
             animateTextUpdate('val-limit-remaining', remainingSanctioned);
 
-            // Table Update with Fade Effect
             const tbody = document.getElementById('table-body');
-            tbody.style.opacity = '0.5'; // dimmed while updating
+            tbody.style.opacity = '0.5'; 
             
             setTimeout(() => {
                 tbody.innerHTML = '';
                 FILTERED_DATA.forEach((row, index) => {
                     const isLoan = (row.Type||"").toLowerCase().includes('loan');
                     const tr = document.createElement('tr');
-                    // Add slight delay to each row for cascade effect
                     tr.className = "hover:bg-slate-700/50 transition duration-150 border-b border-slate-700 last:border-0 group animate-fade-in-up";
-                    tr.style.animationDelay = (index * 20) + 'ms'; // Very fast cascade
+                    tr.style.animationDelay = (index * 20) + 'ms';
                     
                     tr.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-slate-300 font-medium">${row.Date}</td>
@@ -509,7 +501,7 @@
                         </td>
                         <td class="px-6 py-4 text-slate-400 group-hover:text-slate-200 transition-colors">${row.Payee || row.Payee_Name || '-'}</td>
                         <td class="px-6 py-4 text-slate-500 max-w-xs truncate group-hover:text-slate-400 transition-colors" title="${row.Description || ''}">${row.Description || '-'}</td>
-                        <td class="px-6 py-4 text-right font-mono font-bold text-slate-300">₹${Number(row.Amount).toLocaleString()}</td>
+                        <td class="px-6 py-4 text-right font-mono font-bold text-slate-300">₹${formatIndianNumber(Number(row.Amount))}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -552,7 +544,7 @@
                         },
                         borderWidth: 3,
                         fill: true,
-                        tension: 0.4, // Smooth curves
+                        tension: 0.4,
                         pointBackgroundColor: '#1e293b',
                         pointBorderColor: '#3b82f6',
                         pointHoverRadius: 6,
@@ -563,14 +555,8 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
-                    },
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
+                    animation: { duration: 1000, easing: 'easeOutQuart' },
+                    interaction: { mode: 'index', intersect: false },
                     plugins: { 
                         legend: { display: false },
                         tooltip: {
@@ -580,18 +566,35 @@
                             borderColor: '#334155',
                             borderWidth: 1,
                             padding: 10,
-                            displayColors: false
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    // Tooltip INDIAN FORMAT
+                                    return 'Expense: ₹' + formatIndianNumber(context.parsed.y);
+                                }
+                            }
                         }
                     },
                     scales: {
                         x: { grid: { display: false } },
-                        y: { beginAtZero: true, border: { display: false }, grid: { color: '#334155', tickLength: 0 } }
+                        y: { 
+                            beginAtZero: true, 
+                            border: { display: false }, 
+                            grid: { color: '#334155', tickLength: 0 },
+                            ticks: {
+                                callback: function(value) {
+                                    // Y-Axis INDIAN FORMAT (Compact)
+                                    // We can map large numbers to L/Cr if needed, or just commas
+                                    return '₹' + formatIndianNumber(value);
+                                }
+                            }
+                        }
                     }
                 }
             });
         }
 
-        // --- MODAL ANIMATION ---
+        // --- MODAL ---
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modal-content');
         const iframe = document.getElementById('form-iframe');
@@ -599,8 +602,6 @@
         function openModal() {
             modal.classList.remove('hidden-section');
             if(iframe.src === 'about:blank') iframe.src = FORM_URL;
-            
-            // Trigger animation frame
             requestAnimationFrame(() => {
                 modalContent.classList.remove('scale-95', 'opacity-0');
                 modalContent.classList.add('scale-100', 'opacity-100');
@@ -608,14 +609,47 @@
         }
 
         function closeModal() { 
-            // Reverse animation
             modalContent.classList.remove('scale-100', 'opacity-100');
             modalContent.classList.add('scale-95', 'opacity-0');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden-section');
-            }, 300);
+            setTimeout(() => { modal.classList.add('hidden-section'); }, 300);
         }
+    </script>
+    <script>
+        // 1. Disable Right Click
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // 2. Disable Keyboard Shortcuts (F12, Ctrl+Shift+I, Ctrl+U, etc.)
+        document.onkeydown = function(e) {
+            // F12
+            if(e.keyCode == 123) {
+                return false;
+            }
+            // Ctrl+I, Ctrl+J, Ctrl+U (View Source)
+            if(e.ctrlKey && (e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || e.keyCode == 85) {
+                return false;
+            }
+        };
+
+        // 3. Console Clearing (Annoyance)
+        // This repeatedly clears the console if someone manages to open it
+        setInterval(() => {
+            console.clear();
+            console.log("%cSecurity Alert", "color:red; font-size:30px; font-weight:bold;");
+            console.log("This area is restricted.");
+        }, 1000);
+
+        // 4. Detect DevTools Open (Debugger Trick)
+        // This freezes the browser if DevTools is open by hitting a breakpoint loop
+        (function() {
+            const element = new Image();
+            Object.defineProperty(element, 'id', {
+                get: function() {
+                    // Brutal infinite loop to freeze inspection
+                    debugger; 
+                }
+            });
+            console.log(element);
+        })();
     </script>
 </body>
 </html>
