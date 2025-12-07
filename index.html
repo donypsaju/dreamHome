@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan & Expense Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden-section { display: none !important; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Login Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake-anim { animation: shake 0.5s; border-color: #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 h-screen overflow-hidden flex flex-col">
+
+    <div id="login-gate" class="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center text-white transition-all duration-500">
+        <div class="w-full max-w-md p-8 bg-slate-800 rounded-2xl shadow-2xl border border-slate-700">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600/20 text-blue-400 mb-4">
+                    <i class="fas fa-shield-alt text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight">Financial Vault</h1>
+                <p class="text-slate-400 text-sm mt-2">End-to-End Encrypted Workspace</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Decryption Key</label>
+                    <div class="relative">
+                        <input type="password" id="password-input" 
+                            class="w-full bg-slate-900 border border-slate-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="Enter your secret key">
+                        <button onclick="togglePassVisibility()" class="absolute right-3 top-3.5 text-slate-500 hover:text-white">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button onclick="attemptLogin()" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-all shadow-lg shadow-blue-900/50">
+                    Decrypt & Enter
+                </button>
+            </div>
+            
+            <p id="login-status" class="text-center text-xs mt-6 text-slate-500 min-h-[20px]">
+                <i class="fas fa-lock text-xs mr-1"></i> Awaiting Input
+            </p>
+        </div>
+    </div>
+
+    <div id="dashboard-ui" class="hidden-section flex-1 flex flex-col h-screen overflow-hidden">
+        
+        <header class="bg-white border-b border-gray-200 z-10 shrink-0">
+            <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h1 class="font-bold text-xl text-slate-800 hidden sm:block">LoanTracker <span class="text-slate-400 font-normal text-sm">| Analytics</span></h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="openModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-md">
+                        <i class="fas fa-plus mr-2"></i>New Entry
+                    </button>
+                    <button onclick="logout()" class="text-slate-400 hover:text-red-500 p-2 transition" title="Lock Vault">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-6">
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                    <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
+                        <div class="flex items-center gap-2 text-sm text-gray-500 w-full md:w-auto">
+                            <i class="fas fa-filter"></i>
+                            <span class="font-semibold">Filters:</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                            <input type="date" id="filter-start" onchange="applyFilters()" class="text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none">
+                            <input type="date" id="filter-end" onchange="applyFilters()" class="text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none">
+                            
+                            <select id="filter-type" onchange="applyFilters()" class="text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none">
+                                <option value="all">All Types</option>
+                                <option value="loan">Loan Spend</option>
+                                <option value="personal">Personal Spend</option>
+                            </select>
+
+                            <select id="filter-payee" onchange="applyFilters()" class="text-sm border-gray-300 rounded-lg bg-gray-50 p-2 border focus:ring-2 focus:ring-blue-100 outline-none">
+                                <option value="all">All Payees</option>
+                                </select>
+                        </div>
+                        
+                        <button onclick="resetFilters()" class="text-xs text-blue-600 hover:underline whitespace-nowrap">Reset All</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Filtered Total</p>
+                        <p class="text-2xl font-bold text-slate-800 mt-1" id="kpi-filtered-total">₹0</p>
+                        <p class="text-xs text-green-500 mt-1"><i class="fas fa-check-circle"></i> Showing selected view</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
+                        <div class="flex justify-between items-end mb-2">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Loan Limit Utilization</p>
+                            <span class="text-xs font-mono text-gray-600" id="limit-text">0 / 0</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                            <div id="limit-bar" class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2 text-right">Remaining: <span id="limit-remaining" class="font-bold text-slate-700">₹0</span></p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Transactions</p>
+                        <p class="text-2xl font-bold text-slate-800 mt-1" id="kpi-count">0</p>
+                        <p class="text-xs text-blue-500 mt-1">in current view</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
+                        <h3 class="font-bold text-gray-700 text-sm mb-4">Expense Trend</h3>
+                        <div class="h-64 relative w-full">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-bold text-gray-700 text-sm mb-4">By Category</h3>
+                        <div class="h-64 relative w-full flex justify-center">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                        <h3 class="font-bold text-gray-700 text-sm">Detailed Transactions</h3>
+                        <input type="text" id="table-search" onkeyup="applyFilters()" placeholder="Search description..." class="text-xs border rounded-md px-2 py-1 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px]">
+                        <table class="min-w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-500 uppercase bg-gray-50 sticky top-0 z-10 shadow-sm">
+                                <tr>
+                                    <th class="px-6 py-3 font-semibold">Date</th>
+                                    <th class="px-6 py-3 font-semibold">Type</th>
+                                    <th class="px-6 py-3 font-semibold">Payee</th>
+                                    <th class="px-6 py-3 font-semibold">Description</th>
+                                    <th class="px-6 py-3 font-semibold text-right">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body" class="divide-y divide-gray-100">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="modal" class="hidden-section fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="font-bold text-lg text-gray-800">Add Transaction</h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="flex-1 bg-gray-50">
+                <iframe id="form-iframe" class="w-full h-full" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION
+        // REPLACE WITH YOUR REPO URL
+        const DATA_URL = 'https://YOUR_USERNAME.github.io/YOUR_REPO/data.json'; 
+        const FORM_URL = "https://forms.gle/xJY3J4DyXVonZNrQ9";
+
+        // STATE
+        let RAW_DATA = { meta: {}, expenses: [] };
+        let FILTERED_DATA = [];
+        let chartInstances = {};
+
+        // 1. INITIALIZATION
+        window.onload = async () => {
+            const status = document.getElementById('login-status');
+            
+            // Check LocalStorage
+            const savedKey = localStorage.getItem('vaultKey');
+            if(savedKey) {
+                document.getElementById('password-input').value = savedKey;
+                attemptLogin();
+            }
+
+            // Pre-fetch Data (Encrypted)
+            try {
+                status.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Downloading Vault...`;
+                const res = await fetch(DATA_URL + "?t=" + Date.now());
+                if(!res.ok) throw new Error("Vault not found");
+                window.encryptedBlob = await res.text();
+                
+                // Sanitize
+                if(window.encryptedBlob.startsWith('"')) window.encryptedBlob = window.encryptedBlob.slice(1,-1);
+                
+                status.innerHTML = `<i class="fas fa-check text-green-500"></i> Vault Downloaded. Ready to Decrypt.`;
+            } catch (e) {
+                status.innerHTML = `<span class="text-red-500">Error: Could not reach GitHub. Check Network/URL.</span>`;
+            }
+
+            // Prep Modal
+            document.getElementById('form-iframe').src = FORM_URL + "?embedded=true";
+        };
+
+        // 2. AUTHENTICATION
+        function attemptLogin() {
+            const key = document.getElementById('password-input').value;
+            const status = document.getElementById('login-status');
+            const btn = document.getElementById('login-btn');
+
+            if(!window.encryptedBlob) return;
+
+            btn.innerHTML = `<i class="fas fa-cog fa-spin"></i> Decrypting...`;
+            
+            setTimeout(() => {
+                try {
+                    const bytes = CryptoJS.AES.decrypt(window.encryptedBlob, key);
+                    const str = bytes.toString(CryptoJS.enc.Utf8);
+                    
+                    if(!str) throw new Error("Decryption failed");
+                    
+                    // SUCCESS
+                    RAW_DATA = JSON.parse(str);
+                    localStorage.setItem('vaultKey', key); // Save successful key
+                    
+                    // Transition UI
+                    document.getElementById('login-gate').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('login-gate').classList.add('hidden-section');
+                        document.getElementById('dashboard-ui').classList.remove('hidden-section');
+                        initDashboard();
+                    }, 500);
+
+                } catch (e) {
+                    // FAIL
+                    const input = document.getElementById('password-input');
+                    input.classList.add('shake-anim');
+                    status.innerHTML = `<span class="text-red-400 font-bold">Access Denied: Invalid Key</span>`;
+                    btn.innerText = "Decrypt & Enter";
+                    localStorage.removeItem('vaultKey');
+                    
+                    setTimeout(() => input.classList.remove('shake-anim'), 500);
+                }
+            }, 300); // Slight delay for UI feedback
+        }
+
+        function logout() {
+            localStorage.removeItem('vaultKey');
+            location.reload();
+        }
+
+        function togglePassVisibility() {
+            const input = document.getElementById('password-input');
+            input.type = input.type === "password" ? "text" : "password";
+        }
+
+        // 3. DASHBOARD LOGIC
+        function initDashboard() {
+            // Populate Payee Dropdown
+            const payees = new Set();
+            (RAW_DATA.expenses || []).forEach(r => {
+                const p = r.Payee || r.Payee_Name;
+                if(p) payees.add(p.trim());
+            });
+            
+            const payeeSelect = document.getElementById('filter-payee');
+            [...payees].sort().forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.innerText = p;
+                payeeSelect.appendChild(opt);
+            });
+
+            // Set Default Dates (First to Last)
+            // Optional: You can default to "Current Month" here if preferred
+            
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            const type = document.getElementById('filter-type').value;
+            const payee = document.getElementById('filter-payee').value;
+            const search = document.getElementById('table-search').value.toLowerCase();
+
+            // 1. FILTER
+            FILTERED_DATA = (RAW_DATA.expenses || []).filter(row => {
+                const rDate = new Date(row.Date);
+                const rType = (row.Type || "").toLowerCase();
+                const rPayee = (row.Payee || row.Payee_Name || "").toLowerCase(); // Check both column names
+                const rDesc = (row.Description || "").toLowerCase();
+
+                // Date Check
+                if(start && rDate < new Date(start)) return false;
+                if(end && rDate > new Date(end)) return false;
+
+                // Type Check
+                if(type !== 'all') {
+                    if(type === 'loan' && !rType.includes('loan')) return false;
+                    if(type === 'personal' && rType.includes('loan')) return false;
+                }
+
+                // Payee Check
+                if(payee !== 'all' && rPayee !== payee.toLowerCase()) return false;
+
+                // Search Check
+                if(search && !rDesc.includes(search) && !rPayee.includes(search)) return false;
+
+                return true;
+            });
+
+            // Sort by Date Descending
+            FILTERED_DATA.sort((a,b) => new Date(b.Date) - new Date(a.Date));
+
+            updateUI();
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-start').value = '';
+            document.getElementById('filter-end').value = '';
+            document.getElementById('filter-type').value = 'all';
+            document.getElementById('filter-payee').value = 'all';
+            document.getElementById('table-search').value = '';
+            applyFilters();
+        }
+
+        function updateUI() {
+            // 1. KPI CARDS
+            const total = FILTERED_DATA.reduce((sum, r) => sum + (parseFloat(r.Amount)||0), 0);
+            document.getElementById('kpi-filtered-total').innerText = "₹" + total.toLocaleString();
+            document.getElementById('kpi-count').innerText = FILTERED_DATA.length;
+
+            // Global Limit (Always based on RAW data Loan spend vs Meta Limit)
+            const limit = parseFloat(RAW_DATA.meta?.Sanctioned_Amount || 0);
+            const totalLoanUsed = (RAW_DATA.expenses||[]).reduce((sum, r) => {
+                return (r.Type||"").toLowerCase().includes('loan') ? sum + (parseFloat(r.Amount)||0) : sum;
+            }, 0);
+            
+            const pct = limit > 0 ? Math.min(100, (totalLoanUsed/limit)*100) : 0;
+            document.getElementById('limit-bar').style.width = pct + "%";
+            document.getElementById('limit-bar').className = `h-full rounded-full transition-all duration-1000 ${pct > 90 ? 'bg-red-500' : 'bg-blue-600'}`;
+            document.getElementById('limit-text').innerText = `${(pct).toFixed(1)}% Used`;
+            document.getElementById('limit-remaining').innerText = "₹" + (limit - totalLoanUsed).toLocaleString();
+
+
+            // 2. TABLE
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            FILTERED_DATA.forEach(row => {
+                const isLoan = (row.Type||"").toLowerCase().includes('loan');
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition border-b border-gray-100 last:border-0";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-900">${row.Date}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${isLoan ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
+                            ${row.Type}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-medium">${row.Payee || row.Payee_Name || '-'}</td>
+                    <td class="px-6 py-4 text-gray-500 max-w-xs truncate" title="${row.Description || ''}">${row.Description || '-'}</td>
+                    <td class="px-6 py-4 text-right font-mono font-bold text-slate-700">₹${Number(row.Amount).toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 3. CHARTS
+            updateCharts();
+        }
+
+        function updateCharts() {
+            // Aggregate Data for charts based on FILTERED_DATA
+            const dateMap = {};
+            const typeMap = { 'Loan': 0, 'Personal': 0 };
+
+            // Sort Oldest -> Newest for Line Chart
+            const sortedForChart = [...FILTERED_DATA].sort((a,b) => new Date(a.Date) - new Date(b.Date));
+
+            sortedForChart.forEach(r => {
+                // Line Chart
+                const d = r.Date;
+                const amt = parseFloat(r.Amount)||0;
+                dateMap[d] = (dateMap[d]||0) + amt;
+
+                // Pie Chart
+                if((r.Type||"").toLowerCase().includes('loan')) typeMap['Loan'] += amt;
+                else typeMap['Personal'] += amt;
+            });
+
+            const labels = Object.keys(dateMap);
+            const dataPoints = Object.values(dateMap);
+
+            // Destroy old charts if exist
+            if(chartInstances.timeline) chartInstances.timeline.destroy();
+            if(chartInstances.pie) chartInstances.pie.destroy();
+
+            // RENDER LINE CHART
+            const ctxLine = document.getElementById('timelineChart').getContext('2d');
+            chartInstances.timeline = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Expense Flow',
+                        data: dataPoints,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        x: { grid: { display: false } },
+                        y: { border: { display: false }, grid: { color: '#f3f4f6' } }
+                    }
+                }
+            });
+
+            // RENDER PIE CHART
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            chartInstances.pie = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Loan Spend', 'Personal Spend'],
+                    datasets: [{
+                        data: [typeMap['Loan'], typeMap['Personal']],
+                        backgroundColor: ['#ef4444', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // MODAL UTILS
+        function openModal() {
+            document.getElementById('modal').classList.remove('hidden-section');
+        }
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden-section');
+        }
+    </script>
+</body>
+</html>
