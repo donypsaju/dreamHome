@@ -19,12 +19,19 @@
                     },
                     animation: {
                         'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                        'bounce-in': 'bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         fadeInUp: {
                             '0%': { opacity: '0', transform: 'translateY(10px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        bounceIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.3)' },
+                            '50%': { opacity: '1', transform: 'scale(1.05)' },
+                            '70%': { transform: 'scale(0.9)' },
+                            '100%': { transform: 'scale(1)' },
                         }
                     }
                 }
@@ -37,7 +44,7 @@
         .hidden-section { display: none !important; }
         
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; height: 4px; } /* Thinner for mobile */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 
@@ -53,8 +60,7 @@
         .stagger-1 { animation-delay: 100ms; }
         .stagger-2 { animation-delay: 200ms; }
         .stagger-3 { animation-delay: 300ms; }
-        .stagger-4 { animation-delay: 400ms; }
-        .stagger-5 { animation-delay: 500ms; }
+        .stagger-delay-500 { animation-delay: 500ms; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col selection:bg-blue-500 selection:text-white">
@@ -88,7 +94,7 @@
         </div>
     </div>
 
-    <div id="dashboard-ui" class="hidden-section flex-1 flex flex-col h-screen overflow-hidden opacity-0">
+    <div id="dashboard-ui" class="hidden-section flex-1 flex flex-col h-screen overflow-hidden opacity-0 relative">
         
         <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 z-20 shrink-0">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
@@ -100,8 +106,8 @@
                 </div>
                 
                 <div class="flex items-center gap-3">
-                    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-900/30 active:scale-95 flex items-center gap-2">
-                        <i class="fas fa-plus"></i> <span class="hidden sm:inline">Add Entry</span>
+                    <button onclick="openModal()" class="hidden sm:flex bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-900/30 active:scale-95 items-center gap-2">
+                        <i class="fas fa-plus"></i> <span>Add Entry</span>
                     </button>
                     <button onclick="logout()" class="text-slate-400 hover:text-red-400 p-2 rounded-lg hover:bg-slate-700/50 transition-all" title="Lock Vault">
                         <i class="fas fa-power-off text-lg"></i>
@@ -110,13 +116,28 @@
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto bg-slate-900 p-3 sm:p-6 lg:p-8 custom-scroll">
-            <div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        <main class="flex-1 overflow-y-auto bg-slate-900 p-3 sm:p-6 lg:p-8 custom-scroll relative">
+            <div class="max-w-7xl mx-auto space-y-4">
 
-                <div class="opacity-0 animate-fade-in-up stagger-1 bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-4 sticky top-0 z-10 backdrop-blur-sm bg-slate-800/95">
+                <div class="opacity-0 animate-fade-in-up stagger-1">
+                    <button onclick="toggleFilters()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl p-3 flex justify-between items-center transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-slate-700 group-hover:bg-slate-600 p-2 rounded-lg text-slate-300 transition-colors relative">
+                                <i class="fas fa-filter text-sm"></i>
+                                <span id="filter-active-dot" class="hidden-section absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-slate-800"></span>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-sm font-bold text-slate-200">Search & Filters</p>
+                                <p class="text-[10px] text-slate-500" id="filter-status-text">All transactions visible</p>
+                            </div>
+                        </div>
+                        <i id="filter-chevron" class="fas fa-chevron-down text-slate-500 transition-transform duration-300"></i>
+                    </button>
+                </div>
+
+                <div id="filter-panel" class="hidden-section bg-slate-800/50 rounded-xl border border-slate-700/50 p-4 animate-fade-in-up">
                     <div class="flex flex-col xl:flex-row gap-3">
                         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 w-full xl:w-auto flex-1">
-                            
                             <div class="relative">
                                 <span class="absolute left-3 top-2.5 text-xs text-slate-500 pointer-events-none">From</span>
                                 <input type="date" id="filter-start" onchange="applyFilters()" class="w-full text-sm bg-slate-900 border border-slate-700 rounded-lg pb-2 pt-6 px-3 text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none h-14 [color-scheme:dark]">
@@ -192,7 +213,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-0 animate-fade-in-up stagger-4">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-0 animate-fade-in-up stagger-3">
                     <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-center">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Filtered Total</p>
                         <div class="mb-2">
@@ -208,8 +229,7 @@
                     </div>
                 </div>
 
-                <div class="opacity-0 animate-fade-in-up stagger-5 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg mb-10">
-                    <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                <div class="opacity-0 animate-fade-in-up stagger-3 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg mb-20"> <div class="overflow-x-auto max-h-[500px] custom-scroll">
                         <table class="min-w-full text-sm text-left text-slate-400">
                             <thead class="text-xs text-slate-500 uppercase bg-slate-900/50 sticky top-0 z-10 backdrop-blur-sm">
                                 <tr>
@@ -226,6 +246,11 @@
                     </div>
                 </div>
             </div>
+            
+            <button onclick="openModal()" class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-500 rounded-full shadow-lg shadow-blue-900/50 flex items-center justify-center text-white text-xl z-40 transition-all hover:scale-110 active:scale-90 animate-bounce-in stagger-delay-500">
+                <i class="fas fa-plus"></i>
+            </button>
+            
         </main>
     </div>
 
@@ -254,6 +279,7 @@
         let FILTERED_DATA = [];
         let chartInstances = {};
         let encryptedBlob = null;
+        let filtersOpen = false;
 
         // FORMATTER
         function formatIndianNumber(num) { return num.toLocaleString('en-IN'); }
@@ -352,12 +378,42 @@
             applyFilters();
         }
 
+        function toggleFilters() {
+            const panel = document.getElementById('filter-panel');
+            const chevron = document.getElementById('filter-chevron');
+            
+            filtersOpen = !filtersOpen;
+            
+            if(filtersOpen) {
+                panel.classList.remove('hidden-section');
+                chevron.classList.add('rotate-180');
+            } else {
+                panel.classList.add('hidden-section');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
         function applyFilters() {
             const start = document.getElementById('filter-start').value;
             const end = document.getElementById('filter-end').value;
             const type = document.getElementById('filter-type').value;
             const payee = document.getElementById('filter-payee').value;
             const search = document.getElementById('table-search').value.toLowerCase();
+
+            // UI Feedback
+            const hasFilter = start || end || type !== 'all' || payee !== 'all' || search;
+            const statusText = document.getElementById('filter-status-text');
+            const activeDot = document.getElementById('filter-active-dot');
+            
+            if(hasFilter) {
+                activeDot.classList.remove('hidden-section');
+                statusText.innerText = "Custom filters active";
+                statusText.classList.add('text-blue-400');
+            } else {
+                activeDot.classList.add('hidden-section');
+                statusText.innerText = "All transactions visible";
+                statusText.classList.remove('text-blue-400');
+            }
 
             FILTERED_DATA = (RAW_DATA.expenses || []).filter(row => {
                 const rDate = new Date(row.Date);
